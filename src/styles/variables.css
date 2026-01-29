@@ -1,0 +1,8 @@
+:root {
+  --color-primary: #0070ba; /* PayPal blue */
+  --color-bg: #f5f7fa;
+  --color-text: #1f2933;
+
+  --radius: 6px;
+  --spacing: 16px;
+}
