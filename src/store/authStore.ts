@@ -1,60 +1,35 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import type { User } from "../types/user";
 
-type User = {
-  id: string;
-  email: string;
-  name: string;
-  role: "USER" | "ADMIN"
-};
-
-
-type AuthState = {
+// Defainng the shape of our auth store
+interface AuthState {
   user: User | null;
-  token: string | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  isInitialLoading: boolean; // for the "checking auth" splash screen
+
+  setAuth:(user: User) => void;
+  clearAuth: () => void;
+  finishInitialLoad: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
+// Create the auth store
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  isAuthenticated: false,
+  isInitialLoading: true,
 
-      login: async (email, password) => {
-        // Fake delay to simulate API
-        await new Promise((res) => setTimeout(res, 800));
+  setAuth: (user) => set({ 
+    user, 
+    isAuthenticated: true, 
+    isInitialLoading: false 
+  }),
 
-        // Fake credential check
-        if (email !== "test@domain.dev" || password !== "1234") {
-          throw new Error("Invalid credentials");
-        }
+  clearAuth: () => set({ 
+    user: null, 
+    isAuthenticated: false,
+    isInitialLoading: false
+  }),
 
-        set({
-          user: {
-            id: "user1",
-            email,
-            name: "Test User",
-            role: "USER",
-          },
-          token: "fake.jwt.from.backend",
-          isAuthenticated: true,
-        });
-      },
-
-      logout: () => {
-        set({
-          user: null,
-          token: null,
-          isAuthenticated: false,
-        });
-      },
-    }),
-    {
-      name: "auth-storage", // localStorage key
-    }
-  )
-);
+  finishInitialLoad: () => set({ isInitialLoading: false }),
+}));
+  

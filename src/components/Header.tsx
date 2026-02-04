@@ -1,14 +1,23 @@
 import { Link, useLocation } from "react-router-dom";
 import { useCartStore } from "../store/cartStore";
 import { useAuthStore } from "../store/authStore";
-import { FiShoppingCart, FiLogOut, FiLogIn, FiPackage, FiGrid } from "react-icons/fi";
+import { useLogout } from "../hooks/useLogout";
+import {
+  FiShoppingCart,
+  FiLogOut,
+  FiLogIn,
+  FiPackage,
+  FiGrid,
+} from "react-icons/fi";
 
 export default function Header() {
   const items = useCartStore((s) => s.items);
   const totalCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const location = useLocation();
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const logout = useAuthStore((s) => s.logout);
+
+  // 2. Get user info and the proper logout mutation
+  const { isAuthenticated, user } = useAuthStore();
+  const logoutMutation = useLogout();
 
   const navLinks = [
     { to: "/products", label: "Products", icon: FiGrid },
@@ -24,9 +33,11 @@ export default function Header() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">M</span>
+              <span className="text-white font-bold text-sm">N</span>
             </div>
-            <span className="text-xl font-semibold text-gray-900">MyShop</span>
+            <span className="text-xl font-semibold text-gray-900">
+              NexusPay
+            </span>
           </Link>
 
           {/* Navigation */}
@@ -62,7 +73,7 @@ export default function Header() {
               }`}
             >
               <FiShoppingCart className="w-5 h-5" />
-              <span>Cart</span>
+              <span className="hidden xs:inline">Cart</span>
               {totalCount > 0 && (
                 <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-xs font-medium rounded-full flex items-center justify-center">
                   {totalCount}
@@ -70,15 +81,27 @@ export default function Header() {
               )}
             </Link>
 
-            {/* Auth */}
+            {/* Auth Section */}
             {isAuthenticated ? (
-              <button
-                onClick={logout}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <FiLogOut className="w-4 h-4" />
-                Logout
-              </button>
+              <div className="flex items-center gap-3 pl-3 border-l border-gray-200">
+                {/* 3. Show user name for better UX */}
+                <span className="hidden md:block text-sm font-medium text-gray-700">
+                  {user?.name}
+                </span>
+
+                <button
+                  onClick={() => logoutMutation.mutate()} // 4. Use the mutation
+                  disabled={logoutMutation.isPending}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {logoutMutation.isPending ? (
+                    <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <FiLogOut className="w-4 h-4" />
+                  )}
+                  Logout
+                </button>
+              </div>
             ) : (
               <Link
                 to="/login"
